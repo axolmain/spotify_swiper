@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Spotify Top Artists</title>
+</head>
+<body>
+    <div class = "login-box">
+        <h2>Spotify Top Artists</h2>
+        <p>Your top artists are:</p>
+        <ul>
+            <li>Artist 1</li>
+            <li>Artist 2</li>
+            <li>Artist 3</li>
+            <li>
+                {% for artist in top_artists['items'] %}
+                <p>{{ artist['name'] }}</p>
+                {% endfor %}
+
+            </li>
+            <li>Artist 5</li>
+        </ul>
+    </div>
+</body>
+</html>
