@@ -34,9 +34,12 @@ def redirected_name():
 
     # Get the user's top artists
     top_artists = sp.current_user_top_artists()
+    top_favorites = sp.current_user_top_tracks(time_range='short_term', limit=50)
+    print(top_favorites)
+    print(type(top_favorites))
 
     # Return the top artists to the user
-    return render_template('user.html', top_artists=top_artists)
+    return render_template('user.html', top_artists=top_favorites)
 
 if __name__ == '__main__':
     app.run(debug=True)
