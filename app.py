@@ -1,16 +1,18 @@
 # Run with python -m flask run
 from flask import Flask, render_template, request, redirect
 import pandas as pd
-from notion_client import Client
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from config import CLIENT_ID, CLIENT_SECRET
 import json
+import pymongo
+from pymongo import MongoClient
+from urllib.parse import quote_plus
 
 app = Flask(__name__)
 
 # Set up Spotify authentication
-# my_env_var = 
+# my_env_var =
 sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="http://127.0.0.1:5000/redirect", scope="user-top-read")
 
 @app.route('/')
@@ -23,6 +25,14 @@ def login():
     auth_url = sp_oauth.get_authorize_url()
     return redirect(auth_url)
 
+# Connect to MongoDB Atlas cluster
+username = quote_plus("axolmain")
+password = quote_plus("jxpxwWsZFP3vo5DT")
+MONGODB_URI = f"mongodb+srv://{username}:{password}@spotifyswiperfree.urhcq77.mongodb.net/?retryWrites=true&w=majority"
+client = MongoClient(MONGODB_URI)
+db = client.spotifyswiperfree
+collection = db.responses
+
 @app.route('/redirect')
 def redirected_name():
     # Get the authorization code from the Spotify redirect
@@ -34,6 +44,9 @@ def redirected_name():
 
     # Create a new Spotipy client with the access token
     sp = spotipy.Spotify(auth=access_token)
+
+    # Get the user's ID from the Spotify API response
+    user_id = sp.current_user()["id"]
 
     # Get the user's top artists and tracks
     top_tracks_short = sp.current_user_top_tracks(time_range='short_term', limit=20)
@@ -57,46 +70,40 @@ def redirected_name():
         data = sp.audio_features(tracks=song_id)[0]
         user_features = {feature: data[feature] for feature in features}
         return user_features
-    
+
     user_info = {
-        "user_tracks_short": [
-            {"song_id": track["id"], "audio_features": extract_features(track["id"])}
+    "user_tracks_short": [
+        {"song_id": track["id"], "audio_features": extract_features(track["id"])}
+        for track in top_tracks_short["items"]
+    ],
+    "user_tracks_medium": [
+        {"song_id": track["id"], "audio_features": extract_features(track["id"])}
+        for track in top_tracks_medium["items"]
+    ],
+        "albums_short": [
+            {"album_id": track["album"]["id"]}
             for track in top_tracks_short["items"]
         ],
-        "user_tracks_medium": [
-            {"song_id": track["id"], "audio_features": extract_features(track["id"])}
+        "albums_medium": [
+            {"album_id": track["album"]["id"]}
             for track in top_tracks_medium["items"]
         ],
-            "albums_short": [
-                {"album_id": track["album"]["id"]}
-                for track in top_tracks_short["items"]
-            ],
-            "albums_medium": [
-                {"album_id": track["album"]["id"]}
-                for track in top_tracks_medium["items"]
-            ],
-            "artists_short": [
-                {"artist_id": artist["id"]}
-                for artist in top_artists_short["items"]
-            ],
-            "artists_medium": [
-                {"artist_id": artist["id"]}
-                for artist in top_artists_medium["items"]
-            ],
-        }
-    # if no json file exists, create one otherwise append to the existing one the new user info
-    try:
-        with open('user_info.json', 'r') as f:
-            data = json.load(f)
-            data.update(user_info)
-    except:
-        data = user_info
-        with open('user_info.json', 'w') as f:
-            json.dump(data, f)
-    
+        "artists_short": [
+            {"artist_id": artist["id"]}
+            for artist in top_artists_short["items"]
+        ],
+        "artists_medium": [
+            {"artist_id": artist["id"]}
+            for artist in top_artists_medium["items"]
+        ],
+    }
+
+    # Save the user's information to a new MongoDB document
+    collection.insert_one({"user_id": user_id, "user_info": user_info})
 
     # Return the top artists to the user
     return render_template('user.html', top_artists=blist1)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
