@@ -1,5 +1,7 @@
 # Run with python -m flask run
 from flask import Flask, render_template, request, redirect
+import pandas as pd
+from notion_client import Client
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from config import CLIENT_ID, CLIENT_SECRET
@@ -33,16 +35,68 @@ def redirected_name():
     # Create a new Spotipy client with the access token
     sp = spotipy.Spotify(auth=access_token)
 
-    # Get the user's top artists
-    top_artists = sp.current_user_top_artists()
-    top_tracks = sp.current_user_top_tracks(time_range='short_term', limit=50)
-    blist = [top_tracks['items'][song]['name'] for song in range(len(top_tracks['items']))]
-    # convert blist to csv
-    with open("sample.json", "w") as outfile:
-        json.dump(blist, outfile)
+    # Get the user's top artists and tracks
+    top_tracks_short = sp.current_user_top_tracks(time_range='short_term', limit=20)
+    top_tracks_medium = sp.current_user_top_tracks(time_range='medium_term', limit=20)
+    top_artists_short = sp.current_user_top_artists(time_range='short_term', limit=20)
+    top_artists_medium = sp.current_user_top_artists(time_range='medium_term', limit=20)
+
+    # Create a list of the top tracks, albums, and artists
+    blist1 = [top_tracks_short['items'][song]['id'] for song in range(len(top_tracks_short['items']))]
+    blist2 = [top_tracks_medium['items'][song]['id'] for song in range(len(top_tracks_medium['items']))]
+    blist3 = [top_tracks_short['items'][song]['album']['id'] for song in range(len(top_tracks_short['items']))]
+    blist4 = [top_tracks_medium['items'][song]['album']['id'] for song in range(len(top_tracks_medium['items']))]
+    blist5 = [top_artists_short['items'][song]['id'] for song in range(len(top_artists_short['items']))]
+    blist6 = [top_artists_medium['items'][song]['id'] for song in range(len(top_artists_medium['items']))]
+    audio_features_short = sp.audio_features(tracks=blist1)
+    audio_features_medium = sp.audio_features(tracks=blist2)
+
+    # Create a dictionary that contains all user information gathered here. Keys are "top_tracks_short", "top_tracks_medium", "top_artists_short", "top_artists_medium", "top_albums_short", and "top_albums_short". Values are the corresponding lists of tracks, artists, and albums except for the audio features, which is a list attached to each individual song.
+    def extract_features(song_id):
+        features = ["acousticness", "danceability", "energy", "speechiness", "tempo", "valence"]
+        data = sp.audio_features(tracks=song_id)[0]
+        user_features = {feature: data[feature] for feature in features}
+        return user_features
+    
+    user_info = {
+        "user_tracks_short": [
+            {"song_id": track["id"], "audio_features": extract_features(track["id"])}
+            for track in top_tracks_short["items"]
+        ],
+        "user_tracks_medium": [
+            {"song_id": track["id"], "audio_features": extract_features(track["id"])}
+            for track in top_tracks_medium["items"]
+        ],
+            "albums_short": [
+                {"album_id": track["album"]["id"]}
+                for track in top_tracks_short["items"]
+            ],
+            "albums_medium": [
+                {"album_id": track["album"]["id"]}
+                for track in top_tracks_medium["items"]
+            ],
+            "artists_short": [
+                {"artist_id": artist["id"]}
+                for artist in top_artists_short["items"]
+            ],
+            "artists_medium": [
+                {"artist_id": artist["id"]}
+                for artist in top_artists_medium["items"]
+            ],
+        }
+    # if no json file exists, create one otherwise append to the existing one the new user info
+    try:
+        with open('user_info.json', 'r') as f:
+            data = json.load(f)
+            data.update(user_info)
+    except:
+        data = user_info
+        with open('user_info.json', 'w') as f:
+            json.dump(data, f)
+    
 
     # Return the top artists to the user
-    return render_template('user.html', top_artists=blist)
+    return render_template('user.html', top_artists=blist1)
 
 if __name__ == '__main__':
     app.run(debug=True)
