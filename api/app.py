@@ -103,7 +103,3 @@ def redirected_name():
 
     # Return the top artists to the user
     return render_template('user.html', top_artists=blist1)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
