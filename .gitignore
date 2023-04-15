@@ -25,3 +25,12 @@ htmlcov/
 # Custom
 .cache
 config.py
+testing.ipynb
+testing.json
+sample.json
+tam.json
+tas.json
+tsm_a.json
+tsm.json
+tss_a.json
+tss.json

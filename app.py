@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from config import CLIENT_ID, CLIENT_SECRET
+import json
 
 app = Flask(__name__)
 
@@ -34,12 +35,14 @@ def redirected_name():
 
     # Get the user's top artists
     top_artists = sp.current_user_top_artists()
-    top_favorites = sp.current_user_top_tracks(time_range='short_term', limit=50)
-    print(top_favorites)
-    print(type(top_favorites))
+    top_tracks = sp.current_user_top_tracks(time_range='short_term', limit=50)
+    blist = [top_tracks['items'][song]['name'] for song in range(len(top_tracks['items']))]
+    # convert blist to csv
+    with open("sample.json", "w") as outfile:
+        json.dump(blist, outfile)
 
     # Return the top artists to the user
-    return render_template('user.html', top_artists=top_favorites)
+    return render_template('user.html', top_artists=blist)
 
 if __name__ == '__main__':
     app.run(debug=True)
