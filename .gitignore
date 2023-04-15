@@ -24,7 +24,7 @@ htmlcov/
 *,cover
 # Custom
 .cache
-config.py
+
 testing.ipynb
 testing.json
 sample.json
