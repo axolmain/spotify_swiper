@@ -9,11 +9,31 @@ import pymongo
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 
+class MemoryTokenCache:
+    def __init__(self):
+        self.token_info = None
+
+    def get_cached_token(self):
+        return self.token_info
+
+    def save_token_info(self, token_info):
+        self.token_info = token_info
+
 app = Flask(__name__)
 
 # Set up Spotify authentication
 # my_env_var =
-sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="https://spotify-swiper-axolmain.vercel.app/redirect", scope="user-top-read")
+memory_cache = MemoryTokenCache()
+
+sp_oauth = SpotifyOAuth(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri="https://spotify-swiper-axolmain.vercel.app/redirect"
+,
+    scope="user-top-read",
+    cache_handler=memory_cache,
+)
+
 
 # maybe setup as an auth header 
 
@@ -105,3 +125,5 @@ def redirected_name():
 
     # Return the top artists to the user
     return render_template('user.html', top_artists=blist1)
+
+
