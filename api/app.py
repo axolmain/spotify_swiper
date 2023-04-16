@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 # Set up Spotify authentication
 # my_env_var =
-sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="https://spotify-swiper.vercel.app/redirect", scope="user-top-read")
+sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="https://spotify-swiper-axolmain.vercel.app/redirect", scope="user-top-read")
 
 # maybe setup as an auth header 
 
@@ -34,8 +34,6 @@ MONGODB_URI = f"mongodb+srv://{username}:{password}@spotifyswiperfree.urhcq77.mo
 client = MongoClient(MONGODB_URI)
 db = client.spotifyswiperfree
 collection = db.responses
-
-# base64 encode code
 
 @app.route('/redirect')
 def redirected_name():
