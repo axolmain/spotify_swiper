@@ -2,38 +2,40 @@
 from flask import Flask, render_template, request, redirect
 import pandas as pd
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, CacheHandler
 from config import CLIENT_ID, CLIENT_SECRET
 import json
 import pymongo
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 
-class MemoryTokenCache:
-    def __init__(self):
-        self.token_info = None
+# Connect to MongoDB Atlas cluster
+username = quote_plus("axolmain")
+password = quote_plus("jxpxwWsZFP3vo5DT")
+MONGODB_URI = f"mongodb+srv://{username}:{password}@spotifyswiperfree.urhcq77.mongodb.net/?retryWrites=true&w=majority"
+client = MongoClient(MONGODB_URI)
+db = client.spotifyswiperfree
+collection = db.responses
+
+class MongoDBCacheHandler(CacheHandler):
+    def __init__(self, db):
+        self.db = db
 
     def get_cached_token(self):
-        return self.token_info
+        token = self.db.cacheHandler.find_one()
+        return token if token else None
 
-    def save_token_info(self, token_info):
-        self.token_info = token_info
+    def save_token_to_cache(self, token_info):
+        self.db.cacheHandler.replace_one({}, token_info, upsert=True)
+
 
 app = Flask(__name__)
 
 # Set up Spotify authentication
 # my_env_var =
-memory_cache = MemoryTokenCache()
-
-sp_oauth = SpotifyOAuth(
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET,
-    redirect_uri="https://spotify-swiper-axolmain.vercel.app/redirect"
-,
-    scope="user-top-read",
-    cache_handler=memory_cache,
-)
-
+# Set up Spotify authentication with custom cache handler
+cache_handler = MongoDBCacheHandler(db)
+sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="https://spotify-swiper-axolmain.vercel.app/redirect", scope="user-top-read", cache_handler=cache_handler)
 
 # maybe setup as an auth header 
 
@@ -46,14 +48,6 @@ def login():
     # Redirect the user to the Spotify login page
     auth_url = sp_oauth.get_authorize_url()
     return redirect(auth_url)
-
-# Connect to MongoDB Atlas cluster
-username = quote_plus("axolmain")
-password = quote_plus("jxpxwWsZFP3vo5DT")
-MONGODB_URI = f"mongodb+srv://{username}:{password}@spotifyswiperfree.urhcq77.mongodb.net/?retryWrites=true&w=majority"
-client = MongoClient(MONGODB_URI)
-db = client.spotifyswiperfree
-collection = db.responses
 
 @app.route('/redirect')
 def redirected_name():
@@ -125,5 +119,3 @@ def redirected_name():
 
     # Return the top artists to the user
     return render_template('user.html', top_artists=blist1)
-
-
