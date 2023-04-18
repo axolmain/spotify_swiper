@@ -35,7 +35,7 @@ app = Flask(__name__)
 # my_env_var =
 # Set up Spotify authentication with custom cache handler
 cache_handler = MongoDBCacheHandler(db)
-sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="https://spotify-swiper-axolmain.vercel.app/redirect", scope="user-top-read", cache_handler=cache_handler)
+sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri="https://spotify-swiper.vercel.app/redirect", scope="user-top-read", cache_handler=cache_handler)
 
 # maybe setup as an auth header 
 
