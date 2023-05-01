@@ -26,15 +26,8 @@ htmlcov/
 .cache
 
 testing.ipynb
-testing.json
-sample.json
-tam.json
-tas.json
-tsm_a.json
-tsm.json
-tss_a.json
-tss.json
 notion.py
-user_info.json
 venv.zip
 .vercel
+*.json
+config.py

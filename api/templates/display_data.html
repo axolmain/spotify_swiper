@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data</title>
+</head>
+<body>
+    <h1>User Data</h1>
+
+    <h2>Top Tracks Short Term</h2>
+    <ul>
+        {% for track in user_info.user_tracks_short %}
+            <li>{{ track.song_id }} (Audio Features: {{ track.audio_features }})</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Top Tracks Medium Term</h2>
+    <ul>
+        {% for track in user_info.user_tracks_medium %}
+            <li>{{ track.song_id }} (Audio Features: {{ track.audio_features }})</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Albums Short Term</h2>
+    <ul>
+        {% for album in user_info.albums_short %}
+            <li>{{ album.album_id }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Albums Medium Term</h2>
+    <ul>
+        {% for album in user_info.albums_medium %}
+            <li>{{ album.album_id }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Artists Short Term</h2>
+    <ul>
+        {% for artist in user_info.artists_short %}
+            <li>{{ artist.artist_id }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Artists Medium Term</h2>
+    <ul>
+        {% for artist in user_info.artists_medium %}
+            <li>{{ artist.artist_id }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
