@@ -31,3 +31,4 @@ venv.zip
 .vercel
 *.json
 config.py
+song_data.csv
